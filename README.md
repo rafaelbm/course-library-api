@@ -122,3 +122,60 @@ Sometimes, RPC-style calls don't easily map to pluralized resource names
 - (BAD) api/authors/{authorId}/pagetotals
 - (BAD) api/authorpagetotals/{id}
 - (GOOD) api/authors/{authorId}/totalamountofpages (exception case)
+
+## The importance of status codes
+
+Status codes tell the consumer of the API
+
+- Whether or not the requeust worked out as expected
+- What is responsible for a failed request
+
+### Level 200 - Success
+
+- 200 - Ok
+- 201 - Created
+- 204 - No content. Eg: for deletes.
+
+### Level 300
+
+Those are used for redirections, most API's don't need these
+
+### Level 400 - Client Mistakes
+
+- 400 - Bad request. Eg: JSON provided cannot be parsed.
+- 401 - Unauthorized. Eg: No or invalid authentication were provided.
+- 403 - Forbidden. Eg: Authentication succedded but the authenticated user doesn't have access to the resource.
+- 404 - Not found. Requested resources doesn't exist.
+- 405 - Method not allowed. Happens when we try to send a request to a resource with a HTTP method not allowed.
+- 406 - Not acceptable.
+- 409 - Conflict. Can be used when we try to create a resource that already exists.
+- 415 - Unssuported media type.
+- 422 - Unprocessable entity. Can be used when a validation rule fails.
+
+### Level 500 - Server Mistakes
+
+- 500 - Internal server error
+
+## Errors vs Faults
+
+### Errors
+
+Consumer passes invalid data to the API, and the API correctly rejects this
+
+Level 400 status codes  
+Do not contribute to API availability
+
+### Faults
+
+API fails to return a response to a valid request
+
+Level 500 status codes  
+Do contribute to API availability
+
+## Content Negotiation
+
+The process of selecting the best representation for a given response when there are multiples representations available. This is done via the `Accept` header.
+
+> Eg:  
+> Accept: application/json  
+> Accept: application/xml
