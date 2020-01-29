@@ -30,6 +30,9 @@ namespace CourseLibrary.API
             {
                 options.UseSqlServer(
                     @"Server=(localdb)\mssqllocaldb;Database=CourseLibraryDB;Trusted_Connection=True;");
+
+
+                options.EnableSensitiveDataLogging(true);
             }); 
         }
 
