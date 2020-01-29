@@ -9,7 +9,6 @@
 - REST is defined by 6 constraints (one optional)
 - A constraint is a design decision that can have positive and negative impacts
 
-
 ### Uniform Interface
 
 API and consumers share one single, technical interface: URI, Method, Media Type (payload)
@@ -34,7 +33,6 @@ Each response message must explicity state if it can be cached or not
 
 Server can extend client functionality
 
-
 > A System is only considered RESTfull when it adheres to all the required constraints.  
 > Most "RESTful" APIs aren't really RESTful...  
 > ... but that doesn't make them bad APIs, as long as you understand the potential trade-offs
@@ -47,25 +45,25 @@ HTTP protocol is used for remote interaction
 ... the rest of the protocol ins't used as it should be  
 RPC-style implementations (SOAP, often seen when using WCF)
 
->POST (info on data)  
->http://host/myapi  
+> POST (info on data)  
+> http://host/myapi
 >
->POST (author to create)  
->http://host/myapi
+> POST (author to create)  
+> http://host/myapi
 
-##  Level 1 (Resources)
+## Level 1 (Resources)
 
 Each resources is mapped to URI  
-HTTP methods aren't used as they should be   
+HTTP methods aren't used as they should be  
 Results in reduced complexity
 
 Only one http method (POST) is still used for interaction
 
->POST  
->http://host/api/authors
+> POST  
+> http://host/api/authors
 >
->POST  
->http://host/api/authors/{id}
+> POST  
+> http://host/api/authors/{id}
 
 ## Level 2 (Verbs)
 
@@ -74,13 +72,13 @@ Correct status codes are used
 
 Removes unnecessary variation
 
->GET  
->http://host/api/authors   
->200 OK (authors)
+> GET  
+> http://host/api/authors  
+> 200 OK (authors)
 >
->POST (author representation)   
->http://host/api/authors  
->201 Created (author)
+> POST (author representation)  
+> http://host/api/authors  
+> 201 Created (author)
 
 ## Level 3 (Hypermedia)
 
@@ -88,8 +86,39 @@ The API supports Hypermedia as the Engine of Application State (HATEOAS)
 
 Introduces discoverability
 
->GET  
->http://host/api/authors  
->200 ok (authors + links that drive application state)
+> GET  
+> http://host/api/authors  
+> 200 ok (authors + links that drive application state)
 
 **Leve 3 is a precondition for a RESTful API**
+
+## Resource Naming Guidelines
+
+Nouns: things, not actions. Action is the HTTP method.
+
+- (BAD) api/getauthors
+- (GOOD) GET api/authors
+- (GOOD) GET api/authors/{authorId}
+
+Follow through on this principle for predictability
+
+- (BAD) api/something/somethingelse/employees
+- (GOOD) api/employees
+- (BAD) api/id/employees
+- (GOOD) api/employees/{employeeId}
+
+Represent hierarchy when naming resources
+
+- (GOOD) api/authors/{authorId}/courses
+- (GOOD) api/authors/{authorId}/courses/{coursesId}
+
+Filters, sorting orders, ... aren't resources
+
+- (BAD) api/authors/orderby/name
+- (GOOD) api/authors?orderby=name
+
+Sometimes, RPC-style calls don't easily map to pluralized resource names
+
+- (BAD) api/authors/{authorId}/pagetotals
+- (BAD) api/authorpagetotals/{id}
+- (GOOD) api/authors/{authorId}/totalamountofpages (exception case)
