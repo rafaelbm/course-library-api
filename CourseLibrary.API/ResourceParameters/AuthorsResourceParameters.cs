@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace CourseLibrary.API.ResourcesParameters
+namespace CourseLibrary.API.ResourceParameters
 {
     public class AuthorsResourceParameters
     {
@@ -16,7 +16,7 @@ namespace CourseLibrary.API.ResourcesParameters
         public int PageSize
         {
             get => _pageSize;
-            set => _pageSize = (value > maxPageSize) ? maxPageSize : value;
+            set => _pageSize = value > maxPageSize ? maxPageSize : value;
         }
 
         public string OrderBy { get; set; } = "Name";
