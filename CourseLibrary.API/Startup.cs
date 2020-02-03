@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Serialization;
 using System;
+using System.Linq;
 
 namespace CourseLibrary.API
 {
@@ -59,6 +60,18 @@ namespace CourseLibrary.API
                 };
             });
 
+            services.Configure<MvcOptions>(config =>
+            {
+                var newtonsoftJsonOutputFormatter = config.OutputFormatters
+                    .OfType<NewtonsoftJsonOutputFormatter>()?.FirstOrDefault();
+
+                if(newtonsoftJsonOutputFormatter != null)
+                {
+                    newtonsoftJsonOutputFormatter.SupportedMediaTypes
+                        .Add("application/vnd.rafael.hateoas+json");
+                }
+            });
+
             services.AddTransient<IPropertyMappingService, PropertyMappingService>();
             
             services.AddTransient<IPropertyCheckerService, PropertyCheckerService>();
@@ -71,7 +84,6 @@ namespace CourseLibrary.API
             {
                 options.UseSqlServer(
                     @"Server=(localdb)\mssqllocaldb;Database=CourseLibraryDB;Trusted_Connection=True;");
-
 
                 options.EnableSensitiveDataLogging(true);
             });
