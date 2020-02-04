@@ -86,6 +86,15 @@ namespace CourseLibrary.API.Controllers
 
             return Ok(linkedCollectionResource);
         }
+
+
+        /// <summary>
+        /// Get an author by his/her ids
+        /// </summary>
+        /// <param name="authorId">The id of the author you want to get</param>
+        /// <param name="fields">Fields you want to get</param>
+        /// <param name="mediaType">Accepted Media Type</param>
+        /// <returns>An author</returns>
         [Produces("application/json",
             "application/vnd.rafael.hateoas+json",
             "application/vnd.rafael.author.full+json",
@@ -156,28 +165,28 @@ namespace CourseLibrary.API.Controllers
             return Ok(friendlyResourceToReturn);
         }
 
-        [HttpPost(Name = "CreateAuthorWithDateOfDeath")]
-        [RequestHeaderMatchesMediaType("Content-Type",
-           "application/vnd.rafael.authorforcreationwithdateofdeath+json")]
-        [Consumes("application/vnd.rafael.authorforcreationwithdateofdeath+json")]
-        public IActionResult CreateAuthorWithDateOfDeath(AuthorForCreationWithDateOfDeathDto author)
-        {
-            var authorEntity = _mapper.Map<Entities.Author>(author);
-            _courseLibraryRepository.AddAuthor(authorEntity);
-            _courseLibraryRepository.Save();
+        //[HttpPost(Name = "CreateAuthorWithDateOfDeath")]
+        //[RequestHeaderMatchesMediaType("Content-Type",
+        //   "application/vnd.rafael.authorforcreationwithdateofdeath+json")]
+        //[Consumes("application/vnd.rafael.authorforcreationwithdateofdeath+json")]
+        //public IActionResult CreateAuthorWithDateOfDeath(AuthorForCreationWithDateOfDeathDto author)
+        //{
+        //    var authorEntity = _mapper.Map<Entities.Author>(author);
+        //    _courseLibraryRepository.AddAuthor(authorEntity);
+        //    _courseLibraryRepository.Save();
 
-            var authorToReturn = _mapper.Map<AuthorDto>(authorEntity);
+        //    var authorToReturn = _mapper.Map<AuthorDto>(authorEntity);
 
-            var links = CreateLinksForAuthor(authorToReturn.Id, null);
+        //    var links = CreateLinksForAuthor(authorToReturn.Id, null);
 
-            var linkedResourceToReturn = authorToReturn.ShapeData(null)
-                as IDictionary<string, object>;
-            linkedResourceToReturn.Add("links", links);
+        //    var linkedResourceToReturn = authorToReturn.ShapeData(null)
+        //        as IDictionary<string, object>;
+        //    linkedResourceToReturn.Add("links", links);
 
-            return CreatedAtRoute("GetAuthor",
-                new { authorId = linkedResourceToReturn["Id"] },
-                linkedResourceToReturn);
-        }
+        //    return CreatedAtRoute("GetAuthor",
+        //        new { authorId = linkedResourceToReturn["Id"] },
+        //        linkedResourceToReturn);
+        //}
 
         [HttpPost(Name = "CreateAuthor")]
         [RequestHeaderMatchesMediaType("Content-Type",

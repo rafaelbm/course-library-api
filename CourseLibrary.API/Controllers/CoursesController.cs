@@ -6,6 +6,7 @@ using CourseLibrary.API.Entities;
 using CourseLibrary.API.Models;
 using CourseLibrary.API.Services;
 using Marvin.Cache.Headers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -44,6 +45,13 @@ namespace CourseLibrary.API.Controllers
             return Ok(_mapper.Map<IEnumerable<CourseDto>>(coursesForAuthorFromRepo));
         }
 
+        /// <summary>
+        /// Get a course by id for a specific author
+        /// </summary>
+        /// <param name="authorId">The id of the course author</param>
+        /// <param name="courseId">The id of the course</param>
+        /// <returns>An ActionResult of type CourseDto</returns>
+        /// <response code="200">Returns the requested course</response>
         [HttpGet("{courseId}", Name = "GetCourseForAuthor")]
         //[ResponseCache(Duration = 120)]
         [HttpCacheExpiration(CacheLocation = CacheLocation.Public, MaxAge = 1000)]
@@ -119,6 +127,27 @@ namespace CourseLibrary.API.Controllers
             return NoContent(); //Ok return CourseDto can also be returned
         }
 
+
+        /// <summary>
+        /// Partially update an course
+        /// </summary>
+        /// <param name="authorId">The id of the author related to the course</param>
+        /// <param name="courseId">The id of the course you want to update</param>
+        /// <param name="patchDocument">The set of operations to apply to the course</param>
+        /// <returns>An ActionResult</returns>
+        /// <remarks>
+        /// Sample request (this request updates the course's name) \
+        /// PATCH /authors/{authorId}/courses/id \
+        /// [ \
+        ///     { \
+        ///         "op": "replace", \
+        ///         "path":"/name", \
+        ///         "value":"new name" \
+        ///     } \
+        /// ] \
+        /// 
+        /// </remarks>
+        /// 
         [HttpPatch("{courseId}")]
         public ActionResult PartiallyUpdateCourseForAuthor(Guid authorId,
             Guid courseId,

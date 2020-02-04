@@ -10,9 +10,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Serialization;
 using System;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace CourseLibrary.API
 {
@@ -32,7 +35,7 @@ namespace CourseLibrary.API
             {
                 expirationModelOptions.MaxAge = 60;
                 expirationModelOptions.CacheLocation = Marvin.Cache.Headers.CacheLocation.Private;
-            }, 
+            },
             (validationModelOptions) =>
             {
                 validationModelOptions.MustRevalidate = true;
@@ -42,6 +45,15 @@ namespace CourseLibrary.API
 
             services.AddControllers(setupAction =>
             {
+                setupAction.Filters
+                    .Add(new ProducesResponseTypeAttribute(StatusCodes.Status400BadRequest));
+
+                setupAction.Filters
+                    .Add(new ProducesResponseTypeAttribute(StatusCodes.Status406NotAcceptable));
+
+                setupAction.Filters
+                    .Add(new ProducesResponseTypeAttribute(StatusCodes.Status500InternalServerError));
+
                 setupAction.ReturnHttpNotAcceptable = true;
                 setupAction.CacheProfiles.Add("240SecondsCacheProfile",
                     new CacheProfile()
@@ -82,7 +94,7 @@ namespace CourseLibrary.API
                 var newtonsoftJsonOutputFormatter = config.OutputFormatters
                     .OfType<NewtonsoftJsonOutputFormatter>()?.FirstOrDefault();
 
-                if(newtonsoftJsonOutputFormatter != null)
+                if (newtonsoftJsonOutputFormatter != null)
                 {
                     newtonsoftJsonOutputFormatter.SupportedMediaTypes
                         .Add("application/vnd.rafael.hateoas+json");
@@ -90,7 +102,7 @@ namespace CourseLibrary.API
             });
 
             services.AddTransient<IPropertyMappingService, PropertyMappingService>();
-            
+
             services.AddTransient<IPropertyCheckerService, PropertyCheckerService>();
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -103,6 +115,32 @@ namespace CourseLibrary.API
                     @"Server=(localdb)\mssqllocaldb;Database=CourseLibraryDB;Trusted_Connection=True;");
 
                 options.EnableSensitiveDataLogging(true);
+            });
+
+            services.AddSwaggerGen(setupAction =>
+            {
+                setupAction.SwaggerDoc("CourseLibraryOpenAPISpecification", new OpenApiInfo()
+                {
+                    Title = "Course Library API",
+                    Version = "1",
+                    Description = "Through this API you can access and authors and their courses",
+                    Contact = new OpenApiContact()
+                    {
+                        Name = "Rafael",
+                        Url = new Uri("https://www.github.com/rafaelbm")
+                    },
+                    License = new OpenApiLicense()
+                    {
+                        Name = "MIT License",
+                        Url = new Uri("https://opensource.org/licenses/MIT")
+                    },
+
+                });
+
+                var xmlCommentsFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlCommentsFullPath = Path.Combine(AppContext.BaseDirectory, xmlCommentsFile);
+
+                setupAction.IncludeXmlComments(xmlCommentsFullPath);
             });
         }
 
@@ -124,6 +162,14 @@ namespace CourseLibrary.API
                     });
                 });
             }
+
+            app.UseSwagger();
+
+            app.UseSwaggerUI(setupAction =>
+            {
+                setupAction.SwaggerEndpoint("/swagger/CourseLibraryOpenAPISpecification/swagger.json", "Course Libray API");
+                setupAction.RoutePrefix = string.Empty;
+            });
 
             //app.UseResponseCaching();
 
