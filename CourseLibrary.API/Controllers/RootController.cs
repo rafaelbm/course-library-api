@@ -2,34 +2,33 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 
-namespace CourseLibrary.API.Controllers
+namespace CourseLibrary.API.Controllers;
+
+[Route("api")]
+[ApiController]
+public class RootController : ControllerBase
 {
-    [Route("api")]
-    [ApiController]
-    public class RootController : ControllerBase
+    [HttpGet(Name = "GetRoot")]
+    public IActionResult GetRoot()
     {
-        [HttpGet(Name = "GetRoot")]
-        public IActionResult GetRoot()
-        {
-            // create links for root
-            var links = new List<LinkDto>();
+        // create links for root
+        var links = new List<LinkDto>();
 
-            links.Add(
-                new LinkDto(Url.Link("GetRoot", new { }),
-                    "self",
-                    "GET"));
+        links.Add(
+            new LinkDto(Url.Link("GetRoot", new { }),
+                "self",
+                "GET"));
 
-            links.Add(
-                new LinkDto(Url.Link("GetAuthors", new { }),
-                    "authors",
-                    "GET"));
+        links.Add(
+            new LinkDto(Url.Link("GetAuthors", new { }),
+                "authors",
+                "GET"));
 
-            links.Add(
-                new LinkDto(Url.Link("CreateAuthor", new { }),
-                    "create_author",
-                    "POST"));
+        links.Add(
+            new LinkDto(Url.Link("CreateAuthor", new { }),
+                "create_author",
+                "POST"));
 
-            return Ok(links);
-        }
+        return Ok(links);
     }
 }

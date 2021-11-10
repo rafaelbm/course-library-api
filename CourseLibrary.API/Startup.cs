@@ -14,21 +14,21 @@ using Newtonsoft.Json.Serialization;
 using System;
 using System.Linq;
 
-namespace CourseLibrary.API
+namespace CourseLibrary.API;
+
+public class Startup
 {
-    public class Startup
+    public Startup(IConfiguration configuration)
     {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
+        Configuration = configuration;
+    }
 
-        public IConfiguration Configuration { get; }
+    public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddHttpCacheHeaders((expirationModelOptions) =>
+    // This method gets called by the runtime. Use this method to add services to the container.
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddHttpCacheHeaders((expirationModelOptions) =>
             {
                 expirationModelOptions.MaxAge = 60;
                 expirationModelOptions.CacheLocation = Marvin.Cache.Headers.CacheLocation.Private;
@@ -38,9 +38,9 @@ namespace CourseLibrary.API
                 validationModelOptions.MustRevalidate = true;
             });
 
-            services.AddResponseCaching();
+        services.AddResponseCaching();
 
-            services.AddControllers(setupAction =>
+        services.AddControllers(setupAction =>
             {
                 setupAction.ReturnHttpNotAcceptable = true;
                 setupAction.CacheProfiles.Add("240SecondsCacheProfile",
@@ -77,66 +77,65 @@ namespace CourseLibrary.API
                 };
             });
 
-            services.Configure<MvcOptions>(config =>
-            {
-                var newtonsoftJsonOutputFormatter = config.OutputFormatters
-                    .OfType<NewtonsoftJsonOutputFormatter>()?.FirstOrDefault();
-
-                if(newtonsoftJsonOutputFormatter != null)
-                {
-                    newtonsoftJsonOutputFormatter.SupportedMediaTypes
-                        .Add("application/vnd.rafael.hateoas+json");
-                }
-            });
-
-            services.AddTransient<IPropertyMappingService, PropertyMappingService>();
-            
-            services.AddTransient<IPropertyCheckerService, PropertyCheckerService>();
-
-            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
-            services.AddScoped<ICourseLibraryRepository, CourseLibraryRepository>();
-
-            services.AddDbContext<CourseLibraryContext>(options =>
-            {
-                options.UseSqlServer(
-                    @"Server=(localdb)\mssqllocaldb;Database=CourseLibraryDB;Trusted_Connection=True;");
-
-                options.EnableSensitiveDataLogging(true);
-            });
-        }
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        services.Configure<MvcOptions>(config =>
         {
-            if (env.IsDevelopment())
+            var newtonsoftJsonOutputFormatter = config.OutputFormatters
+                .OfType<NewtonsoftJsonOutputFormatter>()?.FirstOrDefault();
+
+            if(newtonsoftJsonOutputFormatter != null)
             {
-                app.UseDeveloperExceptionPage();
+                newtonsoftJsonOutputFormatter.SupportedMediaTypes
+                    .Add("application/vnd.rafael.hateoas+json");
             }
-            else
+        });
+
+        services.AddTransient<IPropertyMappingService, PropertyMappingService>();
+            
+        services.AddTransient<IPropertyCheckerService, PropertyCheckerService>();
+
+        services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+        services.AddScoped<ICourseLibraryRepository, CourseLibraryRepository>();
+
+        services.AddDbContext<CourseLibraryContext>(options =>
+        {
+            options.UseSqlServer(
+                @"Server=(localdb)\mssqllocaldb;Database=CourseLibraryDB;Trusted_Connection=True;");
+
+            options.EnableSensitiveDataLogging(true);
+        });
+    }
+
+    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        if (env.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
+        }
+        else
+        {
+            app.UseExceptionHandler(appBuilder =>
             {
-                app.UseExceptionHandler(appBuilder =>
+                appBuilder.Run(async context =>
                 {
-                    appBuilder.Run(async context =>
-                    {
-                        context.Response.StatusCode = 500;
-                        await context.Response.WriteAsync("An unexpected fault happened. Try Again later.");
-                    });
+                    context.Response.StatusCode = 500;
+                    await context.Response.WriteAsync("An unexpected fault happened. Try Again later.");
                 });
-            }
-
-            //app.UseResponseCaching();
-
-            app.UseHttpCacheHeaders();
-
-            app.UseRouting();
-
-            app.UseAuthorization();
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
             });
         }
+
+        //app.UseResponseCaching();
+
+        app.UseHttpCacheHeaders();
+
+        app.UseRouting();
+
+        app.UseAuthorization();
+
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllers();
+        });
     }
 }

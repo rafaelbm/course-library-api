@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace CourseLibrary.API.Services
+namespace CourseLibrary.API.Services;
+
+public class PropertyMapping<TSource, TDestionation> : IPropertyMapping
 {
-    public class PropertyMapping<TSource, TDestionation> : IPropertyMapping
-    {
-        public Dictionary<string, PropertyMappingValue> _mappingDictionary { get; private set; }
+    public Dictionary<string, PropertyMappingValue> MappingDictionary { get; }
 
-        public PropertyMapping(Dictionary<string, PropertyMappingValue> mappingDictionary)
-        {
-            _mappingDictionary = mappingDictionary ?? throw new ArgumentNullException(nameof(mappingDictionary));
-        }
+    public PropertyMapping(Dictionary<string, PropertyMappingValue> mappingDictionary)
+    {
+        MappingDictionary = mappingDictionary ?? throw new ArgumentNullException(nameof(mappingDictionary));
     }
 }

@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace CourseLibrary.API.Services
-{
-    public class PropertyMappingValue
-    {
-        public IEnumerable<string> DestinationProperties { get; private set; }
-        public bool Rever { get; private set; }
+namespace CourseLibrary.API.Services;
 
-        public PropertyMappingValue(IEnumerable<string> destinationProperties,
-            bool revert = false)
-        {
-            DestinationProperties = destinationProperties ?? throw new ArgumentNullException(nameof(destinationProperties));
-            Rever = revert;
-        }
+public class PropertyMappingValue
+{
+    public IEnumerable<string> DestinationProperties { get; private set; }
+    public bool Rever { get; private set; }
+
+    public PropertyMappingValue(IEnumerable<string> destinationProperties,
+        bool revert = false)
+    {
+        DestinationProperties = destinationProperties ?? throw new ArgumentNullException(nameof(destinationProperties));
+        Rever = revert;
     }
 }

@@ -1,7 +1,6 @@
-﻿namespace CourseLibrary.API.Services
+﻿namespace CourseLibrary.API.Services;
+
+public interface IPropertyCheckerService
 {
-    public interface IPropertyCheckerService
-    {
-        bool TypeHasProperties<T>(string fields);
-    }
+    bool TypeHasProperties<T>(string fields);
 }

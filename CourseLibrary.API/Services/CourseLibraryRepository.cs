@@ -1,205 +1,203 @@
 ﻿using CourseLibrary.API.DbContexts;
 using CourseLibrary.API.Entities;
 using CourseLibrary.API.Helpers;
-using CourseLibrary.API.Models;
 using CourseLibrary.API.ResourceParameters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CourseLibrary.API.Services
+namespace CourseLibrary.API.Services;
+
+public class CourseLibraryRepository : ICourseLibraryRepository, IDisposable
 {
-    public class CourseLibraryRepository : ICourseLibraryRepository, IDisposable
+    private readonly CourseLibraryContext _context;
+    private readonly IPropertyMappingService _propertyMappingService;
+
+    public CourseLibraryRepository(CourseLibraryContext context,
+        IPropertyMappingService propertyMappingService)
     {
-        private readonly CourseLibraryContext _context;
-        private readonly IPropertyMappingService _propertyMappingService;
+        _context = context ?? throw new ArgumentNullException(nameof(context));
+        _propertyMappingService = propertyMappingService ?? throw new ArgumentNullException(nameof(propertyMappingService));
+    }
 
-        public CourseLibraryRepository(CourseLibraryContext context,
-            IPropertyMappingService propertyMappingService)
+    public void AddCourse(Guid authorId, Course course)
+    {
+        if (authorId == Guid.Empty)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-            _propertyMappingService = propertyMappingService ?? throw new ArgumentNullException(nameof(propertyMappingService));
+            throw new ArgumentNullException(nameof(authorId));
         }
 
-        public void AddCourse(Guid authorId, Course course)
+        if (course == null)
         {
-            if (authorId == Guid.Empty)
-            {
-                throw new ArgumentNullException(nameof(authorId));
-            }
+            throw new ArgumentNullException(nameof(course));
+        }
+        // always set the AuthorId to the passed-in authorId
+        course.AuthorId = authorId;
+        _context.Courses.Add(course);
+    }
 
-            if (course == null)
-            {
-                throw new ArgumentNullException(nameof(course));
-            }
-            // always set the AuthorId to the passed-in authorId
-            course.AuthorId = authorId;
-            _context.Courses.Add(course);
+    public void DeleteCourse(Course course)
+    {
+        _context.Courses.Remove(course);
+    }
+
+    public Course GetCourse(Guid authorId, Guid courseId)
+    {
+        if (authorId == Guid.Empty)
+        {
+            throw new ArgumentNullException(nameof(authorId));
         }
 
-        public void DeleteCourse(Course course)
+        if (courseId == Guid.Empty)
         {
-            _context.Courses.Remove(course);
+            throw new ArgumentNullException(nameof(courseId));
         }
 
-        public Course GetCourse(Guid authorId, Guid courseId)
+        return _context.Courses
+            .Where(c => c.AuthorId == authorId && c.Id == courseId).FirstOrDefault();
+    }
+
+    public IEnumerable<Course> GetCourses(Guid authorId)
+    {
+        if (authorId == Guid.Empty)
         {
-            if (authorId == Guid.Empty)
-            {
-                throw new ArgumentNullException(nameof(authorId));
-            }
-
-            if (courseId == Guid.Empty)
-            {
-                throw new ArgumentNullException(nameof(courseId));
-            }
-
-            return _context.Courses
-              .Where(c => c.AuthorId == authorId && c.Id == courseId).FirstOrDefault();
+            throw new ArgumentNullException(nameof(authorId));
         }
 
-        public IEnumerable<Course> GetCourses(Guid authorId)
-        {
-            if (authorId == Guid.Empty)
-            {
-                throw new ArgumentNullException(nameof(authorId));
-            }
+        return _context.Courses
+            .Where(c => c.AuthorId == authorId)
+            .OrderBy(c => c.Title).ToList();
+    }
 
-            return _context.Courses
-                        .Where(c => c.AuthorId == authorId)
-                        .OrderBy(c => c.Title).ToList();
+    public void UpdateCourse(Course course)
+    {
+        // no code in this implementation
+    }
+
+    public void AddAuthor(Author author)
+    {
+        if (author == null)
+        {
+            throw new ArgumentNullException(nameof(author));
         }
 
-        public void UpdateCourse(Course course)
+        // the repository fills the id (instead of using identity columns)
+        author.Id = Guid.NewGuid();
+
+        foreach (var course in author.Courses)
         {
-            // no code in this implementation
+            course.Id = Guid.NewGuid();
         }
 
-        public void AddAuthor(Author author)
+        _context.Authors.Add(author);
+    }
+
+    public bool AuthorExists(Guid authorId)
+    {
+        if (authorId == Guid.Empty)
         {
-            if (author == null)
-            {
-                throw new ArgumentNullException(nameof(author));
-            }
-
-            // the repository fills the id (instead of using identity columns)
-            author.Id = Guid.NewGuid();
-
-            foreach (var course in author.Courses)
-            {
-                course.Id = Guid.NewGuid();
-            }
-
-            _context.Authors.Add(author);
+            throw new ArgumentNullException(nameof(authorId));
         }
 
-        public bool AuthorExists(Guid authorId)
-        {
-            if (authorId == Guid.Empty)
-            {
-                throw new ArgumentNullException(nameof(authorId));
-            }
+        return _context.Authors.Any(a => a.Id == authorId);
+    }
 
-            return _context.Authors.Any(a => a.Id == authorId);
+    public void DeleteAuthor(Author author)
+    {
+        if (author == null)
+        {
+            throw new ArgumentNullException(nameof(author));
         }
 
-        public void DeleteAuthor(Author author)
-        {
-            if (author == null)
-            {
-                throw new ArgumentNullException(nameof(author));
-            }
+        _context.Authors.Remove(author);
+    }
 
-            _context.Authors.Remove(author);
+    public Author GetAuthor(Guid authorId)
+    {
+        if (authorId == Guid.Empty)
+        {
+            throw new ArgumentNullException(nameof(authorId));
         }
 
-        public Author GetAuthor(Guid authorId)
-        {
-            if (authorId == Guid.Empty)
-            {
-                throw new ArgumentNullException(nameof(authorId));
-            }
+        return _context.Authors.FirstOrDefault(a => a.Id == authorId);
+    }
 
-            return _context.Authors.FirstOrDefault(a => a.Id == authorId);
+    public IEnumerable<Author> GetAuthors()
+    {
+        return _context.Authors.ToList<Author>();
+    }
+
+    public PagedList<Author> GetAuthors(AuthorsResourceParameters authorsResourceParameters)
+    {
+        if (authorsResourceParameters is null)
+        {
+            throw new ArgumentNullException(nameof(authorsResourceParameters));
         }
 
-        public IEnumerable<Author> GetAuthors()
+        var collection = _context.Authors as IQueryable<Author>;
+
+        if (!string.IsNullOrWhiteSpace(authorsResourceParameters.MainCategory))
         {
-            return _context.Authors.ToList<Author>();
+            var mainCategory = authorsResourceParameters.MainCategory.Trim();
+            collection = _context.Authors.Where(a => a.MainCategory == mainCategory);
         }
 
-        public PagedList<Author> GetAuthors(AuthorsResourceParameters authorsResourceParameters)
+        if (!string.IsNullOrWhiteSpace(authorsResourceParameters.SearchQuery))
         {
-            if (authorsResourceParameters is null)
-            {
-                throw new ArgumentNullException(nameof(authorsResourceParameters));
-            }
-
-            var collection = _context.Authors as IQueryable<Author>;
-
-            if (!string.IsNullOrWhiteSpace(authorsResourceParameters.MainCategory))
-            {
-                var mainCategory = authorsResourceParameters.MainCategory.Trim();
-                collection = _context.Authors.Where(a => a.MainCategory == mainCategory);
-            }
-
-            if (!string.IsNullOrWhiteSpace(authorsResourceParameters.SearchQuery))
-            {
-                var searchQuery = authorsResourceParameters.SearchQuery.Trim();
-                collection = collection.Where(a => a.MainCategory.Contains(searchQuery)
-                    || a.FirstName.Contains(searchQuery)
-                    || a.LastName.Contains(searchQuery));
-            }
-
-            if (!string.IsNullOrEmpty(authorsResourceParameters.OrderBy))
-            {
-                var authorPropertyMappinig =
-                    _propertyMappingService.GetPropertyMapping<Models.AuthorDto, Author>();
-
-                collection = collection.ApplySort(authorsResourceParameters.OrderBy,
-                    authorPropertyMappinig);
-            }
-
-            return PagedList<Author>.Create(collection,
-                authorsResourceParameters.PageNumber,
-                authorsResourceParameters.PageSize);
+            var searchQuery = authorsResourceParameters.SearchQuery.Trim();
+            collection = collection.Where(a => a.MainCategory.Contains(searchQuery)
+                                               || a.FirstName.Contains(searchQuery)
+                                               || a.LastName.Contains(searchQuery));
         }
 
-        public IEnumerable<Author> GetAuthors(IEnumerable<Guid> authorIds)
+        if (!string.IsNullOrEmpty(authorsResourceParameters.OrderBy))
         {
-            if (authorIds == null)
-            {
-                throw new ArgumentNullException(nameof(authorIds));
-            }
+            var authorPropertyMappinig =
+                _propertyMappingService.GetPropertyMapping<Models.AuthorDto, Author>();
 
-            return _context.Authors.Where(a => authorIds.Contains(a.Id))
-                .OrderBy(a => a.FirstName)
-                .OrderBy(a => a.LastName)
-                .ToList();
+            collection = collection.ApplySort(authorsResourceParameters.OrderBy,
+                authorPropertyMappinig);
         }
 
-        public void UpdateAuthor(Author author)
+        return PagedList<Author>.Create(collection,
+            authorsResourceParameters.PageNumber,
+            authorsResourceParameters.PageSize);
+    }
+
+    public IEnumerable<Author> GetAuthors(IEnumerable<Guid> authorIds)
+    {
+        if (authorIds == null)
         {
-            // no code in this implementation
+            throw new ArgumentNullException(nameof(authorIds));
         }
 
-        public bool Save()
-        {
-            return (_context.SaveChanges() >= 0);
-        }
+        return _context.Authors.Where(a => authorIds.Contains(a.Id))
+            .OrderBy(a => a.FirstName)
+            .OrderBy(a => a.LastName)
+            .ToList();
+    }
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+    public void UpdateAuthor(Author author)
+    {
+        // no code in this implementation
+    }
 
-        protected virtual void Dispose(bool disposing)
+    public bool Save()
+    {
+        return (_context.SaveChanges() >= 0);
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
         {
-            if (disposing)
-            {
-                // dispose resources when needed
-            }
+            // dispose resources when needed
         }
     }
 }
